@@ -25,6 +25,14 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
+INCLUDEPATH += E:/WpdPack/Include
+
+LIBS += E:/WpdPack/Lib/wpcap.lib
+LIBS += E:/WpdPack/Lib/Packet.lib
+
+LIBS += E:/WpdPack/Lib/libwpcap.a
+LIBS += E:/WpdPack/Lib/libpacket.a
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
