@@ -17,21 +17,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    capture.cpp \
+    datapackage.cpp \
+    readonlydelegate.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    capture.h \
+    datapackage.h \
+    Format.h \
+    readonlydelegate.h
 
 FORMS += \
     mainwindow.ui
 
+RESOURCES += \
+    src.qrc
+
 INCLUDEPATH += E:/WpdPack/Include
-
-LIBS += E:/WpdPack/Lib/wpcap.lib
-LIBS += E:/WpdPack/Lib/Packet.lib
-
-LIBS += E:/WpdPack/Lib/libwpcap.a
-LIBS += E:/WpdPack/Lib/libpacket.a
+LIBS += E:/WpdPack/Lib/wpcap.lib  libws2_32
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

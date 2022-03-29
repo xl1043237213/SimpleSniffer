@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>start.png</file>
+        <file>stop.png</file>
+        <file>empty.png</file>
+        <file>down.png</file>
+        <file>up.png</file>
+        <file>downest.png</file>
+        <file>upest.png</file>
+        <file>save.png</file>
+        <file>simplesniffer.ico</file>
+    </qresource>
+</RCC>
