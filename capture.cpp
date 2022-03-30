@@ -9,6 +9,7 @@ Capture::Capture(){
     this->header = nullptr;
     this->pkt_data = nullptr;
 }
+
 bool Capture::setPointer(pcap_t *pointer){
     this->pointer = pointer;
     if(pointer)
@@ -33,7 +34,7 @@ QString Capture::byteToHex(u_char *str, int size){
         else one = one + 0x30;
         char two = str[i] & 0xF;
         if(two >= 0x0A)
-            two = two  + 0x41 - 0x0A;
+            two = two + 0x41 - 0x0A;
         else two = two + 0x30;
         res.append(one);
         res.append(two);
@@ -46,15 +47,15 @@ void Capture::run(){
     while(true){
         if(isDone)
             break;
-        int res = pcap_next_ex(pointer,&header,&pkt_data);
+        int res = pcap_next_ex(pointer,&header,&pkt_data); // get package from interface
         if(res == 0)
             continue;
         local_time_version_sec = header->ts.tv_sec;
         localtime_s(&local_time,&local_time_version_sec);
         strftime(timeString,sizeof(timeString),"%H:%M:%S",&local_time);
         QString info = "";
-        int type = ethernetPackageHandle(pkt_data,info);
-        if(type){
+        int type = ethernetPackageHandle(pkt_data,info); // analyse the type from ethernet frame
+        if(type){ // only handle IPv4, IPv6, ARP package
             DataPackage data;
             int len = header->len;
             data.setPackageType(type);
@@ -79,25 +80,29 @@ int Capture::ethernetPackageHandle(const u_char *pkt_content,QString& info){
     ethernet_type = ntohs(ethernet->ether_type);
 
     switch(ethernet_type){
-    case 0x0800:{// ip package
+    case 0x0800:{// ipv4 package
         int dataPackage = 0;
-        int res = ipPackageHandle(pkt_content,dataPackage);
+        int res = ipPackageHandle(pkt_content,dataPackage); // protocol number
         switch (res) {
-        case 1:{// icmp package
+        case 1:{ // icmp package
             info = icmpPackageHandle(pkt_content);
             return 2;
         }
-        case 6:{// tcp package
-            return tcpPackageHandle(pkt_content,info,dataPackage);
+        case 6:{ // tcp package
+            return tcpPackageHandle(pkt_content,info,dataPackage); // 3:TCP 6:TLS 7:SSL
 
         }
         case 17:{ // udp package
-            int type = udpPackageHandle(pkt_content,info);
+            int type = udpPackageHandle(pkt_content,info); // 4:UDP 5:DNS
             return type;
         }
         default:break;
         }
         break;
+    }
+    case 0x08DD:{// ipv6 package
+        info = arpPackageHandle(pkt_content);
+        return 0;
     }
     case 0x0806:{// arp package
         info = arpPackageHandle(pkt_content);
@@ -159,7 +164,7 @@ int Capture::ipPackageHandle(const u_char *pkt_content,int& ipPackage){
 */
 QString Capture::icmpPackageHandle(const u_char *pkt_content){
     ICMP_HEADER*icmp;
-    icmp = (ICMP_HEADER*)(pkt_content + 20 + 14);
+    icmp = (ICMP_HEADER*)(pkt_content + 14 + 20); // Ethernet header and IPv4 header
     u_char type = icmp->type;
     u_char code = icmp->code;
     QString result = "";
@@ -223,7 +228,7 @@ QString Capture::icmpPackageHandle(const u_char *pkt_content){
 
 int Capture::tcpPackageHandle(const u_char *pkt_content,QString &info,int ipPackage){
     TCP_HEADER*tcp;
-    tcp = (TCP_HEADER*)(pkt_content + 14 + 20);
+    tcp = (TCP_HEADER*)(pkt_content + 14 + 20); // Ethernet header and IPv4 header
     u_short src = ntohs(tcp->src_port);
     u_short des = ntohs(tcp->des_port);
     QString proSend = "";

@@ -138,7 +138,7 @@ QString DataPackage::getMacType(){
     u_short ethernet_type = ntohs(ethernet->ether_type);
     switch (ethernet_type) {
     case 0x0800: return "IPv4(0x800)";
-    case 0x0806:return "ARP(0x0806)";
+    case 0x0806: return "ARP(0x0806)";
     default:{
         return "";
     }

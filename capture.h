@@ -26,7 +26,7 @@ public:
     QString dnsPackageHandle(const u_char *pkt_content);
 protected:
     static QString byteToHex(u_char *str, int size);
-    void run();
+    void run(); // overload run()
 
 signals:
     void send(DataPackage data);
