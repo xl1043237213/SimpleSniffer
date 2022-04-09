@@ -270,7 +270,7 @@ void MainWindow::handleMessage(DataPackage data){
     // show different color
     if(type == TCP){
         color = QColor(216,191,216);
-    }else if(type == TCP){
+    }else if(type == UDP){
         color = QColor(144,238,144);
     }
     else if(type == ARP){
@@ -280,9 +280,13 @@ void MainWindow::handleMessage(DataPackage data){
         color = QColor(255,255,224);
     }else if(type == TLS || type == SSL){
         color = QColor(210,149,210);
+    }else if(type == HTTP){
+        color = QColor(100,149,237);
     }else{
         color = QColor(255,218,185);
     }
+
+
     ui->tableWidget->setItem(countNumber,0,new QTableWidgetItem(QString::number(countNumber + 1)));
     ui->tableWidget->setItem(countNumber,1,new QTableWidgetItem(data.getTimeStamp()));
     ui->tableWidget->setItem(countNumber,2,new QTableWidgetItem(data.getSource()));
@@ -406,7 +410,7 @@ void MainWindow::on_tableWidget_cellClicked(int row, int column)
             item3->addChild(new QTreeWidgetItem(QStringList()<<"Source Address:" + srcIp));
             item3->addChild(new QTreeWidgetItem(QStringList()<<"Destination Address:" + desIp));
 
-            if(packageType == TCP || packageType == TLS || packageType == SSL){
+            if(packageType == TCP || packageType == TLS || packageType == SSL || packageType == HTTP){
                 QString desPort = data[rowNumber].getTcpDestinationPort();
                 QString srcPort = data[rowNumber].getTcpSourcePort();
                 QString ack = data[rowNumber].getTcpAcknowledgment();
@@ -1104,6 +1108,8 @@ void MainWindow::on_tableWidget_cellClicked(int row, int column)
                         }
                     }else if(packageType == SSL){
                         ui->treeWidget->addTopLevelItem(new QTreeWidgetItem(QStringList()<<"Transport Layer Security"));
+                    }else if(packageType == HTTP){
+                        ui->treeWidget->addTopLevelItem(new QTreeWidgetItem(QStringList()<<"HTTP"));
                     }
                 }
             }else if(packageType == UDP || packageType == DNS){
@@ -1282,7 +1288,7 @@ void MainWindow::on_lineEdit_returnPressed()
     QString text = ui->lineEdit->text();
     text = text.toUpper();
     QString target = "#";
-    if(text == "" || text == "UDP" || text == "TCP" || text == "DNS" || text == "ARP"|| text == "ICMP"|| text == "SSL" || text == "TLS"){
+    if(text == "" || text == "UDP" || text == "TCP" || text == "DNS" || text == "ARP"|| text == "ICMP"|| text == "SSL" || text == "TLS" || text == "HTTP"){
         ui->lineEdit->setStyleSheet("QLineEdit {background-color: rgb(154,255,154);}");
         target = text;
     }else{
@@ -1324,10 +1330,149 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 {
     QString text = arg1;
     text = text.toLower();
-    if(text == "" || text == "udp" || text == "tcp" || text == "dns" || text == "arp" || text == "icmp" || text == "tls" || text == "ssl"){
+    if(text == "" || text == "udp" || text == "tcp" || text == "dns" || text == "arp" || text == "icmp" || text == "tls" || text == "ssl" || text == "http"){
         ui->lineEdit->setStyleSheet("QLineEdit {background-color: rgb(154,255,154);}");
     }else{
         ui->lineEdit->setStyleSheet("QLineEdit {background-color: rgb(250,128,114);}");
+    }
+}
+
+/*
+ * on_lineEdit_returnPressed
+ * if you press the enter key,when capture is stopped
+ * table will Filter eligible item
+*/
+void MainWindow::on_lineEdit_2_returnPressed()
+{
+    QString text = ui->lineEdit_2->text();
+
+    bool flag = true;
+    QStringList IP_Port = {""};
+    QStringList IP_check = {""};
+    if(text != ""){
+        IP_Port = text.split(':');
+        if(IP_Port.length() != 0){
+            IP_check = IP_Port[0].split('.');
+        }
+    }
+    if(IP_check.length() != 4 || IP_Port.length() != 2){
+        flag = false;
+    }else{
+        for(int i = 0; i < 4; i++){
+            if(IP_check[i].toInt() >= 0 && IP_check[i].toInt() <= 255){
+                continue;
+            }else{
+                flag = false;
+                break;
+            }
+        }
+        if(flag && IP_Port[1].toInt() >= 0 && IP_Port[1].toInt() <= 65535){
+
+        }else{
+            flag = false;
+        }
+    }
+
+    text = text.toUpper();
+    if(text == "" || flag){
+        ui->lineEdit_2->setStyleSheet("QLineEdit {background-color: rgb(154,255,154);}");
+    }else{
+        ui->lineEdit_2->setStyleSheet("QLineEdit {background-color: rgb(250,128,114);}");
+    }
+    int count = 0;
+    int number = ui->tableWidget->rowCount();
+    if(!isStart && text != ""){
+        if(text!=""){
+            for(int i = 0;i < number;i++){
+                QString Source = ui->tableWidget->item(i,2)->text();
+                QString Destination = ui->tableWidget->item(i,3)->text();
+                QString packageType = ui->tableWidget->item(i,4)->text();
+                QString srcPort = "#";
+                QString desPort = "#";
+                int dataSize = this->data.size();
+                if(packageType == TCP || packageType == TLS || packageType == SSL || packageType == HTTP){
+                    desPort = this->data[i].getTcpDestinationPort();
+                    srcPort = this->data[i].getTcpSourcePort();
+                }else if(packageType == UDP || packageType == DNS){
+                    srcPort = this->data[i].getUdpSourcePort();
+                    desPort = this->data[i].getUdpDestinationPort();
+                }
+                bool ipflag = true;
+                bool portflag = true;
+
+                if(Source == IP_Port[0] || Destination == IP_Port[0]){
+                    portflag = true;
+                }else{
+                    portflag = false;
+                }
+
+                if(srcPort == IP_Port[1] || desPort == IP_Port[1]){
+                    portflag = true;
+                }else{
+                    portflag = false;
+                }
+                if(ipflag && portflag){
+                    ui->tableWidget->setRowHidden(i,false);
+                }else{
+                    ui->tableWidget->setRowHidden(i,true);
+                    count++;
+                }
+            }
+        }else{
+            int number = ui->tableWidget->rowCount();
+            for(int i = 0;i < number;i++){
+                ui->tableWidget->setRowHidden(i,false);
+                count++;
+            }
+        }
+    }
+
+    double res = 0;
+    if(number != 0)
+        res = (count*100.0)/number;
+    statusBar()->showMessage("Have show (" + QString::number(count) + ") " +QString::number(res,10,2) + "%");
+}
+
+/*
+ * on_lineEdit_textChanged
+ * when text at lineEdit changed,it will check input information is correct or not
+ * if it is corrected,the color is green or it will be red
+*/
+void MainWindow::on_lineEdit_2_textChanged(const QString &arg1)
+{
+    QString text = arg1;
+    text = text.toLower();
+    bool flag = true;
+    QStringList IP_Port = {""};
+    QStringList IP_check = {""};
+    if(text != ""){
+        IP_Port = text.split(':');
+        if(IP_Port.length() != 0){
+            IP_check = IP_Port[0].split('.');
+        }
+    }
+    if(IP_check.length() != 4 || IP_Port.length() != 2){
+        flag = false;
+    }else{
+        for(int i = 0; i < 4; i++){
+            if(IP_check[i].toInt() >= 0 && IP_check[i].toInt() <= 255){
+                continue;
+            }else{
+                flag = false;
+                break;
+            }
+        }
+        if(flag && IP_Port[1].toInt() >= 0 && IP_Port[1].toInt() <= 65535){
+
+        }else{
+            flag = false;
+        }
+    }
+
+    if(text == "" || flag){
+        ui->lineEdit_2->setStyleSheet("QLineEdit {background-color: rgb(154,255,154);}");
+    }else{
+        ui->lineEdit_2->setStyleSheet("QLineEdit {background-color: rgb(250,128,114);}");
     }
 }
 

@@ -64,6 +64,16 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Track:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_2"/>
+     </item>
     </layout>
    </widget>
    <widget class="QSplitter" name="splitter">
@@ -191,6 +201,10 @@
    </property>
   </action>
   <action name="actionExit">
+   <property name="icon">
+    <iconset resource="src.qrc">
+     <normaloff>:/exit.png</normaloff>:/exit.png</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>

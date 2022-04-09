@@ -89,8 +89,7 @@ int Capture::ethernetPackageHandle(const u_char *pkt_content,QString& info){
             return 2;
         }
         case 6:{ // tcp package
-            return tcpPackageHandle(pkt_content,info,dataPackage); // 3:TCP 6:TLS 7:SSL
-
+            return tcpPackageHandle(pkt_content,info,dataPackage); // 3:TCP 6:TLS 7:SSL 8:HTTP
         }
         case 17:{ // udp package
             int type = udpPackageHandle(pkt_content,info); // 4:UDP 5:DNS
@@ -138,7 +137,7 @@ int Capture::ipPackageHandle(const u_char *pkt_content,int& ipPackage){
 +------+------+------------------------------------------------+
 | type | code |                   information                  |
 +------+------+------------------------------------------------+
-|  0   |   0  |     Echo response (ping command response)      |
+|   0  |   0  |     Echo response (ping command response)      |
 +------+------+------------------------------------------------+
 |      |   0  |             Network unreachable                |
 +      +------+------------------------------------------------+
@@ -158,7 +157,7 @@ int Capture::ipPackageHandle(const u_char *pkt_content,int& ipPackage){
 +------+------+------------------------------------------------+
 |   5  |  any |                  Relocation                    |
 +------+------+------------------------------------------------+
-|  8   |   0  |       Echo request (ping command request)      |
+|   8  |   0  |       Echo request (ping command request)      |
 +------+------+------------------------------------------------+
 ......
 */
@@ -304,6 +303,13 @@ int Capture::tcpPackageHandle(const u_char *pkt_content,QString &info,int ipPack
             }
             return type;
         }else type = 7;
+    }
+
+    if((src == 80 || des == 80) && (tcpPayLoad > 0)){
+        if(src == 80)
+            proSend = "(http)";
+        else proRecv = "(http)";
+        type = 8;
     }
 
     if(type == 7){

@@ -14,6 +14,7 @@ typedef unsigned long u_long;     // 4 byte
 #define DNS  "DNS"                 //
 #define TLS  "TLS"                 //
 #define SSL  "SSL"                 //
+#define HTTP "HTTP"                //
 
 // Ethernet protocol format
 /*

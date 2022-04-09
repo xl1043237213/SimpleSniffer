@@ -69,6 +69,7 @@ QString DataPackage::getPackageType(){
     case 5:return DNS;
     case 6:return TLS;
     case 7:return SSL;
+    case 8:return HTTP;
     // TODU ...more protocol you can add
     default:{
         return "";
@@ -412,7 +413,6 @@ QString DataPackage::getTcpSourcePort(){
     TCP_HEADER*tcp;
     tcp = (TCP_HEADER*)(pkt_content + 14 + 20);
     int port = ntohs(tcp->src_port);
-    if(port == 443) return "https(443)";
     return QString::number(port);
 }
 /********************** get tcp destination port **********************/
@@ -420,7 +420,6 @@ QString DataPackage::getTcpDestinationPort(){
     TCP_HEADER*tcp;
     tcp = (TCP_HEADER*)(pkt_content + 14 + 20);
     int port = ntohs(tcp->des_port);
-    if(port == 443) return "https(443)";
     return QString::number(port);
 }
 /********************** get tcp sequence **********************/

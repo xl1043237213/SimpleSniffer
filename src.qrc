@@ -8,6 +8,7 @@
         <file>downest.png</file>
         <file>upest.png</file>
         <file>save.png</file>
-        <file>simplesniffer.ico</file>
+        <file>exit.png</file>
+        <file>wireshark.png</file>
     </qresource>
 </RCC>
